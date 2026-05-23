@@ -1,0 +1,69 @@
+# Canonical Video-Mirai training recipe: chunk-wise (3 frames / block),
+# Wan-14B bidirectional teacher, DiT projector, mean-pool over Δ={0,1}.
+generator_ckpt: checkpoints/chunkwise/causal_ode.pt
+generator_fsdp_wrap_strategy: size
+real_score_fsdp_wrap_strategy: size
+fake_score_fsdp_wrap_strategy: size
+real_name: Wan2.1-T2V-14B
+text_encoder_fsdp_wrap_strategy: size
+denoising_step_list:
+- 1000
+- 750
+- 500
+- 250
+warp_denoising_step: true
+ts_schedule: false
+num_train_timestep: 1000
+timestep_shift: 5.0
+guidance_scale: 3.0
+denoising_loss_type: flow
+mixed_precision: true
+seed: 3384764
+wandb_host: https://api.wandb.ai
+wandb_project: video-mirai
+sharding_strategy: full
+lr: 2.0e-06
+lr_critic: 4.0e-07
+beta1: 0.0
+beta2: 0.999
+beta1_critic: 0.0
+beta2_critic: 0.999
+batch_size: 1
+ema_weight: 0.99
+ema_start_step: 200
+total_batch_size: 8
+log_iters: 100
+max_steps: 100
+gradient_accumulation_steps: 8
+negative_prompt: '色调艳丽，过曝，静态，细节模糊不清，字幕，风格，作品，画作，画面，静止，整体发灰，最差质量，低质量，JPEG压缩残留，丑陋的，残缺的，多余的手指，画得不好的手部，画得不好的脸部，畸形的，毁容的，形态畸形的肢体，手指融合，静止不动的画面，杂乱的背景，三条腿，背景人很多，倒着走'
+dfake_gen_update_ratio: 5
+image_or_video_shape:
+- 1
+- 21
+- 16
+- 60
+- 104
+distribution_loss: dmd
+trainer: score_distillation
+gradient_checkpointing: true
+num_frame_per_block: 3
+load_raw_video: false
+model_kwargs:
+  timestep_shift: 5.0
+data_path: prompts/vidprom_filtered_extended.txt
+
+# Foresight-Forcing parameters
+foresight_weight: 0.2
+foresight_student_layer: 15
+foresight_teacher_layer: 20
+foresight_delta: 1
+foresight_include_current: true
+foresight_projector_type: dit
+projection_layers_num: 3
+foresight_ffn_ratio: 4
+foresight_loss_type: cosine
+lr_foresight: 2.0e-06
+projector_every_step: true
+
+# Mean-pool teacher hiddens across Δ = {0, 1} into a single aligned target.
+foresight_delta_mean_pool: true

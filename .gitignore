@@ -1,0 +1,31 @@
+__pycache__
+*.pyc
+*.egg-info
+*.pth
+*.pt
+*.ckpt
+*.safetensors
+
+wan_models/
+checkpoints/
+output/
+dataset/
+prompts/vidprom_filtered_extended.txt
+evaluation_results/
+logs/
+/videos/                       # top-level training videos — large, not tracked
+wandb/
+long_video/
+
+# website/ assets ARE tracked (HTML/CSS/JS/manifest + bundled mp4s for the project page)
+
+# editor / OS noise
+.DS_Store
+.idea/
+.vscode/
+*.swp
+
+# tool dirs
+.codex/
+.claude/
+.agents/

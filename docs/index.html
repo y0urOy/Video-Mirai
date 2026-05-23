@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Video-Mirai · Autoregressive Video Diffusion Models Need Foresight</title>
+  <meta name="description" content="Video-Mirai: a training-only foresight objective that closes the representation-level planning gap in autoregressive video diffusion, with zero inference overhead." />
+
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Noto+Serif+JP:wght@500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" />
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
+          onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]});"></script>
+  <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+  <link rel="stylesheet" href="css/styles.css?v=32" />
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            ink: '#0b0d12',
+            paper: '#fafaf7',
+            current: '#00B0F0',
+            future:  '#FF0000',
+            accent:  '#7C5CFF',
+            muted:   '#6b7280',
+            line:    '#e5e7eb'
+          },
+          fontFamily: {
+            sans: ['Inter','ui-sans-serif','system-ui'],
+            serif: ['"Noto Serif JP"','serif'],
+            mono: ['"JetBrains Mono"','ui-monospace','monospace']
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="font-sans bg-paper text-ink antialiased">
+
+<!-- ======================= NAV ======================= -->
+<nav class="fixed top-0 inset-x-0 z-50 backdrop-blur-md bg-paper/70 border-b border-line">
+  <div class="max-w-7xl mx-auto flex items-center justify-between px-6 py-3">
+    <a href="#top" class="flex items-center gap-2">
+      <span class="font-serif text-lg font-bold tracking-tight">Video-Mirai</span>
+    </a>
+    <div class="hidden md:flex items-center gap-6 text-sm text-muted">
+      <a class="hover:text-ink" href="#gap">Planning Gap</a>
+      <a class="hover:text-ink" href="#method">Method</a>
+      <a class="hover:text-ink" href="#playground">Playground</a>
+      <a class="hover:text-ink" href="#probe">Probe</a>
+      <a class="hover:text-ink" href="#results">Results</a>
+      <a class="hover:text-ink" href="#gallery">Gallery</a>
+      <a class="hover:text-ink" href="#cite">Cite</a>
+    </div>
+  </div>
+</nav>
+
+<!-- ======================= HERO ======================= -->
+<header id="top" class="pt-28 pb-6 px-6 max-w-5xl mx-auto text-center">
+  <div class="text-[11px] uppercase tracking-[0.35em] text-muted mb-8">Arxiv preprint</div>
+
+  <div class="font-serif text-4xl md:text-5xl xl:text-6xl font-bold tracking-tight mb-6">Video-Mirai</div>
+  <h1 class="font-serif text-3xl md:text-5xl xl:text-6xl font-bold leading-[1.1] tracking-tight text-muted">
+    Autoregressive Video Diffusion Models<br/>
+    <span class="text-accent">Need Foresight</span>
+  </h1>
+
+  <p class="mt-10 text-xl md:text-2xl text-muted max-w-3xl mx-auto leading-relaxed">
+    <span class="text-ink font-medium">Video-Mirai</span> closes the representation-level
+    <em>planning gap</em> of causal video generators by letting
+    <span class="text-future font-medium">future segments</span> supervise the
+    <span class="text-current font-medium">current</span> causal state — at training time only.
+  </p>
+  <p class="mt-4 text-base text-muted max-w-2xl mx-auto leading-relaxed">
+    At inference, the foresight encoder and predictor are discarded. The deployed generator keeps
+    its causal architecture, FLOPs, and KV-cache behavior <em>unchanged</em>.
+  </p>
+
+  <div class="mt-10 text-base leading-relaxed">
+    <div class="flex flex-wrap justify-center gap-x-4 gap-y-1 text-ink">
+      <span>Yonghao Yu<sup class="text-muted">1</sup></span>
+      <span>Lang Huang<sup class="text-muted">2</sup><sup class="text-accent">†</sup></span>
+      <span>Runyi Li<sup class="text-muted">3</sup></span>
+      <span>Zerun Wang<sup class="text-muted">1</sup></span>
+      <span>Toshihiko Yamasaki<sup class="text-muted">1</sup></span>
+    </div>
+    <div class="mt-3 flex flex-wrap justify-center gap-x-4 gap-y-1 text-sm text-muted">
+      <span><sup>1</sup>The University of Tokyo</span>
+      <span><sup>2</sup>National Institute of Informatics</span>
+      <span><sup>3</sup>Peking University</span>
+    </div>
+    <div class="mt-3 text-xs text-muted font-mono">
+      <sup class="text-accent">†</sup> Corresponding author
+    </div>
+  </div>
+
+  <div class="mt-10 flex flex-wrap justify-center gap-3 text-sm">
+    <a href="#paper" class="px-5 py-3 rounded-full bg-ink text-paper hover:bg-accent transition">📄 Paper (PDF)</a>
+    <a href="https://github.com/y0urOy/Video-Mirai" target="_blank" rel="noopener" class="px-5 py-3 rounded-full border border-line hover:border-ink transition">⌨︎ Code</a>
+    <a href="#cite"  class="px-5 py-3 rounded-full border border-line hover:border-ink transition">⊕ BibTeX</a>
+    <a href="#probe" class="px-5 py-3 rounded-full border border-line hover:border-ink transition">▶ Try the Demos</a>
+  </div>
+</header>
+
+<!-- ======================= TL;DR NUMBERS ======================= -->
+<section class="px-6 max-w-7xl mx-auto pt-4 pb-12">
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <div class="rounded-2xl border border-line p-6 bg-white">
+      <div class="text-xs uppercase tracking-widest text-muted">5 s VBench Total</div>
+      <div class="mt-2 text-3xl font-mono"><span class="text-muted">83.82</span> → <span class="font-bold text-accent">84.62</span></div>
+      <div class="mt-1 text-sm text-muted">vs Causal-Forcing</div>
+    </div>
+    <div class="rounded-2xl border border-line p-6 bg-white">
+      <div class="text-xs uppercase tracking-widest text-muted">30 s Subject Consistency</div>
+      <div class="mt-2 text-3xl font-mono"><span class="text-muted">84.93</span> → <span class="font-bold text-accent">88.47</span></div>
+      <div class="mt-1 text-sm text-muted">+3.54 beyond training horizon</div>
+    </div>
+    <div class="rounded-2xl border border-line p-6 bg-white">
+      <div class="text-xs uppercase tracking-widest text-muted">30 s Background Consistency</div>
+      <div class="mt-2 text-3xl font-mono"><span class="text-muted">90.22</span> → <span class="font-bold text-accent">91.94</span></div>
+      <div class="mt-1 text-sm text-muted">+1.72 beyond training horizon</div>
+    </div>
+    <div class="rounded-2xl border border-line p-6 bg-ink text-paper">
+      <div class="text-xs uppercase tracking-widest opacity-70">Inference cost</div>
+      <div class="mt-2 text-3xl font-mono font-bold">+ 0</div>
+      <div class="mt-1 text-sm opacity-70">FLOPs · params · KV-cache</div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= PLANNING GAP / DEMO 1 ======================= -->
+<section id="gap" class="px-6 max-w-7xl mx-auto py-20 border-t border-line">
+  <div class="max-w-3xl">
+    <div class="text-xs uppercase tracking-[0.3em] text-muted mb-4">§ 1 The Planning Gap</div>
+    <h2 class="font-serif text-3xl md:text-4xl font-bold leading-tight">A segment may look correct in isolation while failing to specify what must remain true later.</h2>
+    <p class="mt-6 text-muted leading-relaxed">
+      Present-segment supervision is under-constrained: many hidden states can generate the same
+      plausible current segment, but only some retain identity, layout, and motion cues that future
+      segments will need. We call this the
+      <span class="text-ink font-medium">representation-level planning gap</span>.
+    </p>
+  </div>
+
+  <div class="mt-12 rounded-3xl border border-line bg-white overflow-hidden">
+    <div class="flex flex-wrap items-center gap-2 px-5 py-3 border-b border-line text-sm">
+      <span class="text-muted mr-1">Prompt:</span>
+      <select id="gap-prompt" class="bg-paper px-3 py-1.5 rounded-full border border-line text-sm focus:outline-none focus:border-ink"></select>
+      <span class="ml-auto text-xs font-mono text-muted">
+        <span class="inline-block w-2 h-2 rounded-full bg-muted align-middle mr-1"></span>Baseline
+        <span class="inline-block w-2 h-2 rounded-full bg-accent align-middle ml-3 mr-1"></span>Video-Mirai
+      </span>
+    </div>
+
+    <div class="grid grid-cols-2 gap-2 bg-paper">
+      <div class="relative aspect-video bg-ink overflow-hidden">
+        <video id="vid-base" class="absolute inset-0 w-full h-full object-cover" autoplay muted loop playsinline preload="auto"></video>
+        <div class="absolute top-3 left-3 text-[10px] uppercase tracking-widest text-paper/90 font-mono px-2 py-1 rounded bg-ink/60 backdrop-blur-sm">Baseline</div>
+      </div>
+      <div class="relative aspect-video bg-ink overflow-hidden">
+        <video id="vid-ours" class="absolute inset-0 w-full h-full object-cover" autoplay muted loop playsinline preload="auto"></video>
+        <div class="absolute top-3 left-3 text-[10px] uppercase tracking-widest text-paper/90 font-mono px-2 py-1 rounded bg-accent/80 backdrop-blur-sm">Video-Mirai</div>
+      </div>
+    </div>
+
+    <div class="px-5 py-4 flex flex-wrap items-center gap-3 text-xs">
+      <button id="gap-prev" class="px-3 py-1.5 rounded-full border border-line hover:border-ink">‹ Prev</button>
+      <button id="gap-next" class="px-3 py-1.5 rounded-full border border-line hover:border-ink">Next ›</button>
+      <button id="gap-sync" class="px-3 py-1.5 rounded-full border border-line hover:border-ink">↻ Sync</button>
+      <span class="ml-auto text-muted">Pick a different prompt to swap clips · Sync re-aligns the timelines</span>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= METHOD / DEMO 4 ======================= -->
+<section id="method" class="px-6 max-w-7xl mx-auto py-20 border-t border-line">
+  <div class="text-xs uppercase tracking-[0.3em] text-muted mb-4">§ 2 Method</div>
+  <h2 class="font-serif text-3xl md:text-4xl font-bold leading-tight max-w-3xl">
+    Use foresight as <em>supervision</em>, not as input.
+  </h2>
+  <p class="mt-6 text-muted max-w-3xl leading-relaxed">
+    The causal generator rolls out causally under the same mask used at inference. A frozen foresight
+    encoder then reads the completed rollout — including future segments — and produces future-aware
+    feature targets. A lightweight predictor maps each causal hidden state to its fused target via
+    a cosine loss. After training, the foresight encoder and predictor are discarded.
+  </p>
+
+  <div class="mt-12 grid lg:grid-cols-5 gap-6 items-stretch">
+    <!-- Method figure from paper -->
+    <figure class="lg:col-span-3 rounded-3xl border border-line bg-white p-6 flex flex-col">
+      <img src="assets/method/method.png" alt="Overview of Video-Mirai (Figure 2 of the paper)"
+           class="w-full h-auto rounded-xl" />
+      <figcaption class="text-xs text-muted mt-4 leading-relaxed">
+        <span class="font-semibold text-ink">Overview of Video-Mirai.</span>
+        We take a three-segment video as an example. The causal DiT denoises
+        <span class="font-mono">X₂</span> from its noisy version conditioned on
+        <span class="font-mono">X₁</span> via KV-cache. A frozen foresight encoder processes the causal
+        DiT&rsquo;s clean rollout
+        <span class="font-mono">{X₁, X₂, X₃}</span>, including the future segment
+        <span class="font-mono">X₃</span>. A predictor maps the causal DiT&rsquo;s hidden state
+        <span class="font-mono">h₂</span> into the encoder&rsquo;s space, where the foresight loss aligns it with
+        the encoder&rsquo;s fused hidden state
+        <span class="font-mono">H̄₂</span>, which contains foresight information.
+      </figcaption>
+    </figure>
+
+    <!-- Equation + bullets (matching cards, same width as figure column proportions) -->
+    <div class="lg:col-span-2 flex flex-col gap-6">
+      <div class="flex-1 rounded-3xl border border-line bg-white p-6 flex flex-col justify-center">
+        <div class="text-[11px] uppercase tracking-[0.2em] text-muted mb-3">Foresight Loss</div>
+        <div class="text-lg overflow-x-auto">
+          $$\ell^{F}_i \;=\; 1 - \cos\!\big(\phi_\omega(\mathbf{h}_i^{L}),\; \mathrm{sg}[\bar{\mathbf{H}}_i]\big)$$
+        </div>
+        <p class="text-sm text-muted mt-3 leading-relaxed">
+          Stopped-gradient targets fused across a small look-ahead window $\Delta = \{0,1\}$;
+          a 3-block DiT predictor at mid-depth ($\alpha\!=\!0.5$) projects the causal hidden state.
+        </p>
+      </div>
+
+      <div class="flex-1 rounded-3xl border border-line bg-white p-6 flex flex-col justify-center">
+        <div class="text-[11px] uppercase tracking-[0.2em] text-muted mb-3">Key properties</div>
+        <ul class="space-y-3">
+          <li class="flex gap-3 items-start">
+            <span class="shrink-0 mt-2 w-1.5 h-1.5 rounded-full bg-accent"></span>
+            <p class="text-sm leading-snug">The future is <span class="font-semibold text-ink">never fed</span> into the generator at inference.</p>
+          </li>
+          <li class="flex gap-3 items-start">
+            <span class="shrink-0 mt-2 w-1.5 h-1.5 rounded-full bg-future"></span>
+            <p class="text-sm leading-snug">The encoder is the <span class="font-semibold text-ink">same Wan-14B</span> already used by the DMD score teacher — <span class="font-semibold text-ink">no extra parameters</span> at deployment.</p>
+          </li>
+          <li class="flex gap-3 items-start">
+            <span class="shrink-0 mt-2 w-1.5 h-1.5 rounded-full bg-ink"></span>
+            <p class="text-sm leading-snug"><span class="font-semibold text-ink">Drop-in</span> on top of Self-Forcing and Causal-Forcing; frame-wise and chunk-wise.</p>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= PLAYGROUND header ======================= -->
+<section id="playground" class="px-6 max-w-7xl mx-auto py-20 border-t border-line">
+  <div class="text-xs uppercase tracking-[0.3em] text-muted mb-4">§ 3 Interactive Playground</div>
+  <h2 class="font-serif text-3xl md:text-4xl font-bold leading-tight max-w-3xl">
+    See what the model has internalized about the future.
+  </h2>
+  <p class="mt-6 text-muted max-w-3xl leading-relaxed">
+    Two interactive probes. The first looks <em>inside</em> the causal generator and asks: how much of the
+    future can be decoded from its current hidden state? The second varies the look-ahead window the
+    model was trained with and shows how visual quality and consistency move.
+  </p>
+</section>
+
+<!-- ======================= DEMO 2: PROBE ======================= -->
+<section id="probe" class="px-6 max-w-7xl mx-auto pb-8">
+  <div class="rounded-3xl border border-line bg-white overflow-hidden">
+    <div class="px-6 py-5 border-b border-line flex flex-wrap items-center gap-3">
+      <div>
+        <div class="text-[10px] uppercase tracking-[0.3em] text-muted">Demo · Foresight Readout Probe</div>
+        <h3 class="font-serif text-2xl font-bold mt-1">Decoding the future from a frozen hidden state</h3>
+      </div>
+      <div class="ml-auto text-xs text-muted">An MLP readout reconstructs future RGB from layer-15 features — frozen at probe time.</div>
+    </div>
+
+    <div class="grid md:grid-cols-4 gap-3 p-6">
+      <figure class="probe-cell">
+        <figcaption>Current frame</figcaption>
+        <div class="probe-image"><img id="probe-cur" alt="Current frame" /></div>
+      </figure>
+      <figure class="probe-cell">
+        <figcaption><span class="dot bg-muted"></span>Baseline readout</figcaption>
+        <div class="probe-image"><img id="probe-base" alt="Baseline readout" /></div>
+      </figure>
+      <figure class="probe-cell">
+        <figcaption><span class="dot bg-accent"></span>Video-Mirai readout</figcaption>
+        <div class="probe-image"><img id="probe-ours" alt="Video-Mirai readout" /></div>
+      </figure>
+      <figure class="probe-cell">
+        <figcaption>Future frame</figcaption>
+        <div class="probe-image"><img id="probe-fut" alt="Future frame" /></div>
+      </figure>
+    </div>
+
+    <div class="px-6 pb-6 flex flex-wrap items-center gap-3">
+      <span class="text-xs uppercase tracking-widest text-muted mr-1">Prompt</span>
+      <div id="probe-prompts" class="flex flex-wrap gap-2"></div>
+    </div>
+
+    <div class="px-6 pb-8">
+      <div class="flex items-center gap-3 text-sm">
+        <span class="text-muted whitespace-nowrap">Look-ahead Δ</span>
+        <input id="probe-delta" type="range" min="1" max="3" step="1" value="1" class="flex-1 accent-accent" />
+        <span id="probe-delta-val" class="font-mono text-sm w-8 text-right">1</span>
+      </div>
+      <div class="mt-3 text-xs text-muted">
+        Higher Δ asks the predictor to recover frames further in the future. Video-Mirai degrades gracefully; the baseline collapses to the current frame.
+      </div>
+    </div>
+  </div>
+
+  <!-- Follow-up: readout = rollout average -->
+  <div class="mt-8 rounded-3xl border border-line bg-white overflow-hidden">
+    <div class="px-6 py-5 border-b border-line flex flex-wrap items-center gap-3">
+      <div>
+        <div class="text-[10px] uppercase tracking-[0.3em] text-muted">Demo · Readout vs. Rollout Average</div>
+        <h3 class="font-serif text-2xl font-bold mt-1">Video-Mirai internalizes the future distribution</h3>
+      </div>
+      <div class="ml-auto text-xs text-muted max-w-md">
+        The one-shot readout from the frozen Video-Mirai hidden state closely matches the
+        empirical average of 4 stochastic causal rollouts from the same starting frame —
+        evidence that the hidden state encodes the marginal future distribution, not just
+        one trajectory.
+      </div>
+    </div>
+    <figure class="p-6">
+      <div class="rollout-figure-wrap">
+        <div id="rollout-demo" class="rollout-figure-canvas" aria-label="Readout vs. stochastic rollouts average diagram">
+          <div class="rollout-shift">
+          <div class="rollout-label rollout-top-label" style="left:12.600%; top:2.300%;">Current frame</div>
+          <div class="rollout-label rollout-top-label readout-hover-text" style="left:50.000%; top:2.300%;">Readout</div>
+          <div class="rollout-label rollout-top-label readout-hover-text rollout-hover-text" style="left:85.650%; top:2.300%;">Rollouts average</div>
+
+          <div class="rollout-img-box" style="left:1.000%; top:7.200%;">
+            <img src="assets/rollout/current.jpg" alt="Current frame">
+          </div>
+          <div class="rollout-img-box readout-img" style="left:38.400%; top:7.200%;">
+            <img src="assets/rollout/readout.jpg" alt="Readout">
+          </div>
+          <div class="rollout-img-box avg-img" style="left:74.050%; top:7.200%;">
+            <img src="assets/rollout/rollout_avg.jpg" alt="Rollouts average">
+          </div>
+
+          <div class="rollout-img-box rollout-img" style="left:1.000%; top:55.400%;">
+            <img src="assets/rollout/r1.jpg" alt="Stochastic rollout 1">
+          </div>
+          <div class="rollout-img-box rollout-img" style="left:25.350%; top:55.400%;">
+            <img src="assets/rollout/r2.jpg" alt="Stochastic rollout 2">
+          </div>
+          <div class="rollout-img-box rollout-img" style="left:49.700%; top:55.400%;">
+            <img src="assets/rollout/r3.jpg" alt="Stochastic rollout 3">
+          </div>
+          <div class="rollout-img-box rollout-img" style="left:74.050%; top:55.400%;">
+            <img src="assets/rollout/r4.jpg" alt="Stochastic rollout 4">
+          </div>
+
+          <div class="rollout-label rollout-readout-text" style="left:29.200%; top:20.200%;">Readout</div>
+          <div class="rollout-label rollout-sample-text" style="left:7.000%; top:45.600%;">Sample 4&times;</div>
+          <div class="rollout-label rollout-rollouts-text rollout-hover-text" style="left:49.150%; top:45.400%;">Stochastic rollouts</div>
+          <div class="rollout-label rollout-average-text rollout-hover-text" style="left:99.000%; top:57.000%;">Average</div>
+          <div class="rollout-approx">≈</div>
+
+          <svg class="rollout-lines" viewBox="0 0 1680 660" preserveAspectRatio="none" aria-hidden="true">
+            <defs>
+              <marker id="rollout-arrow-gray" markerWidth="10" markerHeight="10"
+                refX="9" refY="5" orient="auto" markerUnits="userSpaceOnUse">
+                <path class="rollout-arrow-gray" d="M 0 0 L 10 5 L 0 10 z" />
+              </marker>
+
+              <marker id="rollout-arrow-readout" markerWidth="10" markerHeight="10"
+                refX="9" refY="5" orient="auto" markerUnits="userSpaceOnUse">
+                <path class="readout-hover-arrow" d="M 0 0 L 10 5 L 0 10 z" />
+              </marker>
+
+              <marker id="rollout-arrow-rollout" markerWidth="10" markerHeight="10"
+                refX="9" refY="5" orient="auto" markerUnits="userSpaceOnUse">
+                <path class="rollout-hover-arrow" d="M 0 0 L 10 5 L 0 10 z" />
+              </marker>
+            </defs>
+
+            <line
+              x1="407" y1="157"
+              x2="645" y2="157"
+              class="rollout-line-gray"
+              stroke-width="3"
+              marker-end="url(#rollout-arrow-gray)"
+            />
+
+            <line
+              x1="1140" y1="157"
+              x2="1035" y2="157"
+              class="rollout-line-gray readout-hover-line"
+              stroke-width="3"
+              marker-end="url(#rollout-arrow-readout)"
+            />
+
+            <line
+              x1="1140" y1="157"
+              x2="1244" y2="157"
+              class="rollout-line-gray readout-hover-line"
+              stroke-width="3"
+              marker-end="url(#rollout-arrow-readout)"
+            />
+
+            <path
+              d="M 212 267 L 212 330 L 1439 330"
+              fill="none"
+              class="rollout-line-gray"
+              stroke-width="3"
+            />
+
+            <line
+              x1="212" y1="330"
+              x2="212" y2="360"
+              class="rollout-line-gray"
+              stroke-width="3"
+              marker-end="url(#rollout-arrow-gray)"
+            />
+
+            <line
+              x1="621" y1="330"
+              x2="621" y2="360"
+              class="rollout-line-gray"
+              stroke-width="3"
+              marker-end="url(#rollout-arrow-gray)"
+            />
+
+            <line
+              x1="1030" y1="330"
+              x2="1030" y2="360"
+              class="rollout-line-gray"
+              stroke-width="3"
+              marker-end="url(#rollout-arrow-gray)"
+            />
+
+            <line
+              x1="1439" y1="330"
+              x2="1439" y2="360"
+              class="rollout-line-gray"
+              stroke-width="3"
+              marker-end="url(#rollout-arrow-gray)"
+            />
+
+            <path
+              d="
+                M 17 602
+                C 17 616, 32 620, 64 620
+                L 792 620
+                C 820 620, 835 630, 840 644
+                C 845 630, 860 620, 888 620
+                L 1587 620
+                C 1619 620, 1634 616, 1634 602
+              "
+              fill="none"
+              class="rollout-line-gray rollout-hover-line"
+              stroke-width="3"
+            />
+
+            <path
+              d="
+                M 840 644
+                L 840 652
+                L 1662 652
+                L 1662 157
+              "
+              fill="none"
+              class="rollout-line-gray rollout-hover-line"
+              stroke-width="3"
+            />
+
+            <line
+              x1="1662" y1="157"
+              x2="1634" y2="157"
+              class="rollout-line-gray rollout-hover-line"
+              stroke-width="3"
+              marker-end="url(#rollout-arrow-rollout)"
+            />
+          </svg>
+          </div>
+        </div>
+      </div>
+      <figcaption class="text-xs text-muted mt-4 leading-relaxed text-center">
+        Hover any <span class="text-accent font-semibold">Readout</span> or <span class="text-accent font-semibold">Stochastic rollouts</span> to highlight its
+        relation to <span class="font-medium text-ink">Rollouts average</span>.
+      </figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- ======================= DEMO 3: WINDOW SANDBOX ======================= -->
+<section id="window" class="px-6 max-w-7xl mx-auto pb-24">
+  <div class="rounded-3xl border border-line bg-white overflow-hidden">
+    <div class="px-6 py-5 border-b border-line flex flex-wrap items-center gap-3">
+      <div>
+        <div class="text-[10px] uppercase tracking-[0.3em] text-muted">Demo · Foresight Window Ablation</div>
+        <h3 class="font-serif text-2xl font-bold mt-1">Train with different look-ahead windows</h3>
+      </div>
+      <div class="ml-auto text-xs text-muted">Each button corresponds to a separately trained model (Table 1 in paper).</div>
+    </div>
+
+    <div class="grid md:grid-cols-5 gap-6 p-6 items-stretch">
+      <div class="md:col-span-3 flex flex-col gap-3">
+        <div class="aspect-video bg-ink rounded-2xl overflow-hidden">
+          <video id="window-vid" class="w-full h-full object-cover" autoplay muted loop playsinline preload="metadata"></video>
+        </div>
+        <div class="text-xs text-muted">
+          $\{0,1\}$ — current plus one-segment lookahead — gives the best Quality and Total.
+        </div>
+      </div>
+      <div class="md:col-span-2 flex flex-col gap-3">
+        <div class="flex flex-wrap gap-2" id="window-buttons"></div>
+        <div id="window-radar" class="w-full flex-1 min-h-[220px]"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= RESULTS ======================= -->
+<section id="results" class="px-6 max-w-7xl mx-auto py-20 border-t border-line">
+  <div class="text-xs uppercase tracking-[0.3em] text-muted mb-4">§ 4 Quantitative Results</div>
+  <h2 class="font-serif text-3xl md:text-4xl font-bold leading-tight max-w-3xl">
+    Drop-in gains across settings, amplified beyond the training horizon.
+  </h2>
+
+  <div class="mt-10 rounded-3xl border border-line bg-white overflow-x-auto">
+    <table class="w-full text-sm">
+      <thead class="bg-paper border-b border-line text-xs uppercase tracking-wider text-muted">
+        <tr>
+          <th class="px-5 py-3 text-left">Method</th>
+          <th class="px-5 py-3 text-right">Quality 5s</th>
+          <th class="px-5 py-3 text-right">Semantic 5s</th>
+          <th class="px-5 py-3 text-right">Total 5s</th>
+          <th class="px-5 py-3 text-right">Subj. Cons. 30s</th>
+          <th class="px-5 py-3 text-right">Bg. Cons. 30s</th>
+          <th class="px-5 py-3 text-right">Overall 30s</th>
+        </tr>
+      </thead>
+      <tbody id="results-tbody" class="divide-y divide-line font-mono"></tbody>
+    </table>
+  </div>
+  <p class="mt-4 text-xs text-muted">Best within each baseline pair in bold. All variants use the same training prompts and budget.</p>
+</section>
+
+<!-- ======================= GALLERY ======================= -->
+<section id="gallery" class="px-6 max-w-7xl mx-auto py-20 border-t border-line">
+  <div class="text-xs uppercase tracking-[0.3em] text-muted mb-4">§ 5 Gallery</div>
+  <h2 class="font-serif text-3xl md:text-4xl font-bold leading-tight max-w-3xl">
+    Generation quality, within and beyond the training horizon.
+  </h2>
+  <p class="mt-4 text-muted max-w-3xl">Hover to play. Each card shows a baseline / Video-Mirai pair on the same prompt.</p>
+
+  <!-- 5-second subsection -->
+  <div class="mt-12">
+    <div class="flex items-baseline gap-4 mb-6">
+      <h3 class="font-serif text-2xl md:text-3xl font-bold">5-second generations</h3>
+      <span class="text-sm text-muted">Within the training horizon.</span>
+    </div>
+    <div id="gallery-grid-5s" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5"></div>
+  </div>
+
+  <!-- 30-second subsection -->
+  <div class="mt-16">
+    <div class="flex flex-wrap items-baseline gap-x-4 gap-y-1 mb-6">
+      <h3 class="font-serif text-2xl md:text-3xl font-bold">30-second rollouts</h3>
+      <span class="text-sm text-muted">Beyond the training horizon.</span>
+      <span class="ml-auto inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-accent/10 text-accent text-[11px] font-mono uppercase tracking-wider">
+        <span class="w-1.5 h-1.5 rounded-full bg-accent"></span>
+        Rolling-Sink
+      </span>
+    </div>
+    <div id="gallery-grid-30s" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5"></div>
+    <p class="mt-5 text-xs text-muted leading-relaxed">
+      Video-Mirai composes with <a href="https://github.com/TencentARC/RollingForcing" target="_blank" rel="noopener" class="underline decoration-dotted hover:text-ink">Rolling-Sink</a>
+      (Tencent ARC) for minute-level long-video generation. The 30-second clips above are produced by stacking
+      Rolling-Sink on top of the Video-Mirai foresight checkpoint, beyond the 5-second training horizon.
+    </p>
+  </div>
+</section>
+
+<!-- ======================= CITE ======================= -->
+<section id="cite" class="px-6 max-w-7xl mx-auto py-20 border-t border-line">
+  <div class="text-xs uppercase tracking-[0.3em] text-muted mb-4">§ 6 Cite</div>
+  <h2 class="font-serif text-3xl md:text-4xl font-bold leading-tight">BibTeX</h2>
+  <p class="mt-4 text-muted">If you find this work useful, please cite:</p>
+  <pre class="mt-6 rounded-2xl border border-line bg-white p-6 text-sm font-mono overflow-x-auto whitespace-pre"><code>@article{yu2026videomirai,
+  title   = {Video-Mirai: Autoregressive Video Diffusion Models Need Foresight},
+  author  = {Yu, Yonghao and Huang, Lang and Li, Runyi and Wang, Zerun and Yamasaki, Toshihiko},
+  journal = {arXiv preprint},
+  year    = {2026}
+}</code></pre>
+</section>
+
+<footer class="border-t border-line text-sm text-muted">
+  <div class="max-w-7xl mx-auto px-6 py-10 flex flex-col md:flex-row justify-between gap-3">
+    <div>© 2026 The Authors</div>
+    <div class="font-mono text-xs">Built static · No tracking · No telemetry</div>
+  </div>
+</footer>
+
+<script src="data/manifest.js?v=15"></script>
+<script src="js/playground.js?v=8"></script>
+</body>
+</html>
