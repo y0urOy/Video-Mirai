@@ -24,6 +24,68 @@
   })();
 
   // ============================================================
+  // REEL — Auto-playing side-by-side cycle through every 5s clip
+  //   (slider + gallery5s), placed above the TL;DR numbers.
+  // ============================================================
+  (function reel() {
+    const vb = document.getElementById("reel-base");
+    const vo = document.getElementById("reel-ours");
+    const promptEl  = document.getElementById("reel-prompt");
+    const counterEl = document.getElementById("reel-counter");
+    if (!vb || !vo) return;
+
+    // Fixed playlist order. Each entry: { slug, dir }. The reel looks up the
+    // prompt text from the original slider/gallery5s arrays in the manifest.
+    const order = [
+      { slug: "shanghai-zoom", dir: "slider"  },
+      { slug: "burger",        dir: "slider"  },
+      { slug: "rank118",       dir: "gallery" },
+      { slug: "rank15",        dir: "gallery" },
+      { slug: "rank110",       dir: "gallery" },
+      { slug: "gwen-stacy",    dir: "slider"  },
+      { slug: "rank25",        dir: "gallery" },
+      { slug: "rank40",        dir: "gallery" },
+      { slug: "bear-tree",     dir: "slider"  },
+      { slug: "rank30",        dir: "gallery" }
+    ];
+    const bySlug = new Map();
+    (D.slider    || []).forEach(p => bySlug.set(p.slug, p));
+    (D.gallery5s || []).forEach(p => bySlug.set(p.slug, p));
+    const playlist = order
+      .map(o => bySlug.has(o.slug) ? { ...bySlug.get(o.slug), dir: o.dir } : null)
+      .filter(Boolean);
+    if (!playlist.length) return;
+
+    let curr = 0;
+    function load() {
+      const s = playlist[curr];
+      vb.src = `videos/${s.dir}/${s.slug}-base.mp4`;
+      vo.src = `videos/${s.dir}/${s.slug}-ours.mp4`;
+      if (promptEl)  promptEl.textContent  = s.prompt;
+      if (counterEl) counterEl.textContent = `${curr + 1} / ${playlist.length}`;
+      const sync = () => { try { vo.currentTime = vb.currentTime; } catch (_) {} };
+      vb.addEventListener("loadedmetadata", sync, { once: true });
+      vb.play().catch(() => {});
+      vo.play().catch(() => {});
+    }
+
+    // Advance when the baseline clip ends; loop back at the end.
+    vb.addEventListener("ended", () => {
+      curr = (curr + 1) % playlist.length;
+      load();
+    });
+
+    // Keep the two videos aligned if they drift.
+    setInterval(() => {
+      if (!vb.paused && Math.abs(vb.currentTime - vo.currentTime) > 0.15) {
+        vo.currentTime = vb.currentTime;
+      }
+    }, 1000);
+
+    load();
+  })();
+
+  // ============================================================
   // DEMO 1 — Side-by-side baseline vs. Video-Mirai, time-synced
   // ============================================================
   (function sideBySide() {
@@ -55,9 +117,6 @@
     });
     document.getElementById("gap-next").addEventListener("click", () => {
       curr = (curr + 1) % D.slider.length; sel.value = curr; load();
-    });
-    document.getElementById("gap-sync").addEventListener("click", () => {
-      vo.currentTime = vb.currentTime; vb.play(); vo.play();
     });
 
     // Periodic resync — different decoders / different keyframes can drift.
@@ -334,38 +393,89 @@
       items.forEach((g) => {
         const card = document.createElement("div");
         card.className = "gallery-card group";
-        card.dataset.state = "ours"; // start on ours
+        card.dataset.state = "ours"; // main view starts on Video-Mirai
         const src = (state) => `videos/gallery/${g.slug}-${state}.mp4`;
+        const oursURL = src("ours");
+        const baseURL = src("base");
         card.innerHTML = `
-          <video autoplay muted loop playsinline preload="auto" data-src-ours="${src('ours')}" data-src-base="${src('base')}"></video>
-          <div class="label">
-            <span class="badge-state">VIDEO-MIRAI</span>
-            <button class="toggle px-2 py-1 rounded-full bg-paper/20 hover:bg-paper/40 text-[10px]">⇄</button>
-          </div>
+          <video class="main-video" autoplay muted loop playsinline preload="auto"></video>
+          <span class="main-label">VIDEO-MIRAI</span>
+          <button class="pip" type="button" aria-label="Swap baseline and Video-Mirai">
+            <video class="pip-video" autoplay muted loop playsinline preload="auto"></video>
+            <span class="pip-label">BASELINE</span>
+          </button>
           <div class="prompt">${g.prompt}</div>
         `;
-        const v = card.querySelector("video");
-        v.src = src("ours");
-        v.play().catch(()=>{});  // start playing immediately on render
-        // Toggle baseline vs ours
-        card.querySelector(".toggle").addEventListener("click", (e) => {
+        const mainV = card.querySelector(".main-video");
+        const pipV  = card.querySelector(".pip-video");
+        const mainL = card.querySelector(".main-label");
+        const pipL  = card.querySelector(".pip-label");
+
+        mainV.src = oursURL;
+        pipV.src  = baseURL;
+        mainV.play().catch(()=>{});
+        pipV.play().catch(()=>{});
+
+        card.querySelector(".pip").addEventListener("click", (e) => {
           e.stopPropagation();
-          const t = card.querySelector(".badge-state");
-          if (card.dataset.state === "ours") {
-            card.dataset.state = "base";
-            v.src = v.dataset.srcBase;
-            t.textContent = "BASELINE";
-          } else {
-            card.dataset.state = "ours";
-            v.src = v.dataset.srcOurs;
-            t.textContent = "VIDEO-MIRAI";
-          }
-          v.play().catch(()=>{});
+          const mainSrc = mainV.currentSrc || mainV.src;
+          const pipSrc  = pipV.currentSrc  || pipV.src;
+          mainV.src = pipSrc;
+          pipV.src  = mainSrc;
+          const t = mainL.textContent;
+          mainL.textContent = pipL.textContent;
+          pipL.textContent  = t;
+          card.dataset.state = card.dataset.state === "ours" ? "base" : "ours";
+          mainV.play().catch(()=>{});
+          pipV.play().catch(()=>{});
         });
         grid.appendChild(card);
       });
     };
     renderGrid("gallery-grid-5s",  D.gallery5s);
     renderGrid("gallery-grid-30s", D.gallery30s);
+
+    // Per-section toggle. Button label describes the CURRENT view state, with
+    // a colored dot acting as the Baseline/Video-Mirai legend marker.
+    const LABEL_PIP_ON  = '<span class="inline-block w-1.5 h-1.5 rounded-full bg-accent align-middle mr-1"></span>Video-Mirai&nbsp;&nbsp;<span class="inline-block w-1.5 h-1.5 rounded-full bg-muted align-middle mr-1"></span>Baseline';
+    const LABEL_PIP_OFF = '<span class="inline-block w-1.5 h-1.5 rounded-full bg-accent align-middle mr-1"></span>Only Video-Mirai';
+    document.querySelectorAll(".pip-toggle").forEach((btn) => {
+      const grid = document.getElementById(btn.dataset.pipToggle);
+      if (!grid) return;
+      const labelEl = btn.querySelector(".pip-label-text");
+      btn.addEventListener("click", () => {
+        const showingPip = grid.dataset.pip !== "off";
+        if (showingPip) {
+          // Switch to "Only Video-Mirai": hide PiP, revert any swapped cards.
+          grid.dataset.pip = "off";
+          if (labelEl) labelEl.innerHTML = LABEL_PIP_OFF;
+          grid.querySelectorAll(".gallery-card").forEach((card) => {
+            if (card.dataset.state === "base") {
+              const mainV = card.querySelector(".main-video");
+              const pipV  = card.querySelector(".pip-video");
+              const mainL = card.querySelector(".main-label");
+              const pipL  = card.querySelector(".pip-label");
+              const tmpSrc = mainV.currentSrc || mainV.src;
+              mainV.src = pipV.currentSrc || pipV.src;
+              pipV.src  = tmpSrc;
+              const tmpLbl = mainL.textContent;
+              mainL.textContent = pipL.textContent;
+              pipL.textContent  = tmpLbl;
+              card.dataset.state = "ours";
+              mainV.play().catch(()=>{});
+            }
+            const pipV2 = card.querySelector(".pip-video");
+            if (pipV2) pipV2.pause();
+          });
+        } else {
+          // Switch back to "Video-Mirai + Baseline": show PiPs again.
+          grid.dataset.pip = "on";
+          if (labelEl) labelEl.innerHTML = LABEL_PIP_ON;
+          grid.querySelectorAll(".gallery-card .pip-video").forEach((v) => {
+            v.play().catch(()=>{});
+          });
+        }
+      });
+    });
   })();
 })();

@@ -16,7 +16,7 @@
   <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
           onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]});"></script>
   <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
-  <link rel="stylesheet" href="css/styles.css?v=32" />
+  <link rel="stylesheet" href="css/styles.css?v=36" />
   <script>
     tailwind.config = {
       theme: {
@@ -61,24 +61,19 @@
 </nav>
 
 <!-- ======================= HERO ======================= -->
-<header id="top" class="pt-28 pb-6 px-6 max-w-5xl mx-auto text-center">
+<header id="top" class="pt-28 pb-6 px-6 max-w-6xl mx-auto text-center">
   <div class="text-[11px] uppercase tracking-[0.35em] text-muted mb-8">Arxiv preprint</div>
 
-  <div class="font-serif text-4xl md:text-5xl xl:text-6xl font-bold tracking-tight mb-6">Video-Mirai</div>
-  <h1 class="font-serif text-3xl md:text-5xl xl:text-6xl font-bold leading-[1.1] tracking-tight text-muted">
-    Autoregressive Video Diffusion Models<br/>
-    <span class="text-accent">Need Foresight</span>
+  <div class="font-serif text-3xl md:text-4xl xl:text-5xl font-bold tracking-tight mb-4">Video-Mirai</div>
+  <h1 class="font-serif text-xl md:text-2xl xl:text-3xl font-bold leading-[1.2] tracking-tight text-muted whitespace-nowrap">
+    Autoregressive Video Diffusion Models <span class="text-accent">Need Foresight</span>
   </h1>
 
-  <p class="mt-10 text-xl md:text-2xl text-muted max-w-3xl mx-auto leading-relaxed">
+  <p class="mt-8 text-lg md:text-xl text-muted max-w-3xl mx-auto leading-relaxed">
     <span class="text-ink font-medium">Video-Mirai</span> closes the representation-level
     <em>planning gap</em> of causal video generators by letting
     <span class="text-future font-medium">future segments</span> supervise the
     <span class="text-current font-medium">current</span> causal state — at training time only.
-  </p>
-  <p class="mt-4 text-base text-muted max-w-2xl mx-auto leading-relaxed">
-    At inference, the foresight encoder and predictor are discarded. The deployed generator keeps
-    its causal architecture, FLOPs, and KV-cache behavior <em>unchanged</em>.
   </p>
 
   <div class="mt-10 text-base leading-relaxed">
@@ -106,6 +101,20 @@
     <a href="#probe" class="px-5 py-3 rounded-full border border-line hover:border-ink transition">▶ Try the Demos</a>
   </div>
 </header>
+
+<!-- ======================= REEL: ALL 5s COMPARISONS ======================= -->
+<section id="reel" class="px-6 max-w-7xl mx-auto pt-6 pb-8">
+  <div class="grid grid-cols-2 gap-2">
+    <div class="relative aspect-video bg-ink overflow-hidden rounded-2xl">
+      <video id="reel-base" class="absolute inset-0 w-full h-full object-cover" autoplay muted playsinline preload="auto"></video>
+      <div class="absolute top-3 left-3 text-[10px] uppercase tracking-widest text-paper/90 font-mono px-2 py-1 rounded bg-ink/60 backdrop-blur-sm">Baseline</div>
+    </div>
+    <div class="relative aspect-video bg-ink overflow-hidden rounded-2xl">
+      <video id="reel-ours" class="absolute inset-0 w-full h-full object-cover" autoplay muted playsinline preload="auto"></video>
+      <div class="absolute top-3 left-3 text-[10px] uppercase tracking-widest text-paper/90 font-mono px-2 py-1 rounded bg-accent/80 backdrop-blur-sm">Video-Mirai</div>
+    </div>
+  </div>
+</section>
 
 <!-- ======================= TL;DR NUMBERS ======================= -->
 <section class="px-6 max-w-7xl mx-auto pt-4 pb-12">
@@ -170,8 +179,7 @@
     <div class="px-5 py-4 flex flex-wrap items-center gap-3 text-xs">
       <button id="gap-prev" class="px-3 py-1.5 rounded-full border border-line hover:border-ink">‹ Prev</button>
       <button id="gap-next" class="px-3 py-1.5 rounded-full border border-line hover:border-ink">Next ›</button>
-      <button id="gap-sync" class="px-3 py-1.5 rounded-full border border-line hover:border-ink">↻ Sync</button>
-      <span class="ml-auto text-muted">Pick a different prompt to swap clips · Sync re-aligns the timelines</span>
+      <span class="ml-auto text-muted">Pick a different prompt to swap clips</span>
     </div>
   </div>
 </section>
@@ -540,15 +548,21 @@
   <h2 class="font-serif text-3xl md:text-4xl font-bold leading-tight max-w-3xl">
     Generation quality, within and beyond the training horizon.
   </h2>
-  <p class="mt-4 text-muted max-w-3xl">Hover to play. Each card shows a baseline / Video-Mirai pair on the same prompt.</p>
+  <p class="mt-4 text-muted max-w-3xl">Each card shows a baseline / Video-Mirai pair on the same prompt.</p>
 
   <!-- 5-second subsection -->
   <div class="mt-12">
-    <div class="flex items-baseline gap-4 mb-6">
+    <div class="flex flex-wrap items-baseline gap-x-4 gap-y-1 mb-6">
       <h3 class="font-serif text-2xl md:text-3xl font-bold">5-second generations</h3>
       <span class="text-sm text-muted">Within the training horizon.</span>
+      <span class="ml-auto text-[11px] text-muted hidden sm:inline">Click to toggle view</span>
+      <button data-pip-toggle="gallery-grid-5s"
+              class="pip-toggle inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-line text-xs font-mono uppercase tracking-wider hover:border-ink transition"
+              title="Click to switch between comparison view and Video-Mirai only">
+        <span class="pip-label-text"><span class="inline-block w-1.5 h-1.5 rounded-full bg-accent align-middle mr-1"></span>Video-Mirai&nbsp;&nbsp;<span class="inline-block w-1.5 h-1.5 rounded-full bg-muted align-middle mr-1"></span>Baseline</span>
+      </button>
     </div>
-    <div id="gallery-grid-5s" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5"></div>
+    <div id="gallery-grid-5s" data-pip="on" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5"></div>
   </div>
 
   <!-- 30-second subsection -->
@@ -556,12 +570,14 @@
     <div class="flex flex-wrap items-baseline gap-x-4 gap-y-1 mb-6">
       <h3 class="font-serif text-2xl md:text-3xl font-bold">30-second rollouts</h3>
       <span class="text-sm text-muted">Beyond the training horizon.</span>
-      <span class="ml-auto inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-accent/10 text-accent text-[11px] font-mono uppercase tracking-wider">
-        <span class="w-1.5 h-1.5 rounded-full bg-accent"></span>
-        Rolling-Sink
-      </span>
+      <span class="ml-auto text-[11px] text-muted hidden sm:inline">Click to toggle view</span>
+      <button data-pip-toggle="gallery-grid-30s"
+              class="pip-toggle inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-line text-xs font-mono uppercase tracking-wider hover:border-ink transition"
+              title="Click to switch between comparison view and Video-Mirai only">
+        <span class="pip-label-text"><span class="inline-block w-1.5 h-1.5 rounded-full bg-accent align-middle mr-1"></span>Video-Mirai&nbsp;&nbsp;<span class="inline-block w-1.5 h-1.5 rounded-full bg-muted align-middle mr-1"></span>Baseline</span>
+      </button>
     </div>
-    <div id="gallery-grid-30s" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5"></div>
+    <div id="gallery-grid-30s" data-pip="on" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5"></div>
     <p class="mt-5 text-xs text-muted leading-relaxed">
       Video-Mirai composes with <a href="https://github.com/TencentARC/RollingForcing" target="_blank" rel="noopener" class="underline decoration-dotted hover:text-ink">Rolling-Sink</a>
       (Tencent ARC) for minute-level long-video generation. The 30-second clips above are produced by stacking
