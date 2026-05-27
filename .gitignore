@@ -29,3 +29,6 @@ long_video/
 .codex/
 .claude/
 .agents/
+
+# private docs (kept locally, not published)
+docs/README.md
