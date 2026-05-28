@@ -68,16 +68,14 @@
   </h1>
 
   <p class="mt-8 text-lg md:text-xl text-muted max-w-3xl mx-auto leading-relaxed">
-    <span class="text-ink font-medium">Video-Mirai</span> closes the representation-level
-    <em>planning gap</em> of causal video generators by letting
-    <span class="text-future font-medium">future segments</span> supervise the
-    <span class="text-current font-medium">current</span> causal state — at training time only.
+    Video-Mirai closes the planning gap in causal video generators by letting future segments
+    supervise the current state, only at training time.
   </p>
 
   <div class="mt-10 text-base leading-relaxed">
     <div class="flex flex-wrap justify-center gap-x-4 gap-y-1 text-ink">
       <span>Yonghao Yu<sup class="text-muted">1</sup></span>
-      <span>Lang Huang<sup class="text-muted">2</sup><sup class="text-accent">†</sup></span>
+      <span>Lang Huang<sup class="text-muted">2</sup><span class="text-xs ml-0.5 align-baseline">📧</span></span>
       <span>Runyi Li<sup class="text-muted">3</sup></span>
       <span>Zerun Wang<sup class="text-muted">1</sup></span>
       <span>Toshihiko Yamasaki<sup class="text-muted">1</sup></span>
@@ -86,9 +84,6 @@
       <span><sup>1</sup>The University of Tokyo</span>
       <span><sup>2</sup>National Institute of Informatics</span>
       <span><sup>3</sup>Peking University</span>
-    </div>
-    <div class="mt-3 text-xs text-muted font-mono">
-      <sup class="text-accent">†</sup> Corresponding author
     </div>
   </div>
 
@@ -190,7 +185,7 @@
   </h2>
   <p class="mt-6 text-muted max-w-3xl leading-relaxed">
     The causal generator rolls out causally under the same mask used at inference. A frozen foresight
-    encoder then reads the completed rollout — including future segments — and produces future-aware
+    encoder then reads the completed rollout, including future segments, and produces future-aware
     feature targets. A lightweight predictor maps each causal hidden state to its fused target via
     a cosine loss. After training, the foresight encoder and predictor are discarded.
   </p>
@@ -236,7 +231,7 @@
           </li>
           <li class="flex gap-3 items-start">
             <span class="shrink-0 mt-2 w-1.5 h-1.5 rounded-full bg-future"></span>
-            <p class="text-sm leading-snug">The encoder is the <span class="font-semibold text-ink">same Wan-14B</span> already used by the DMD score teacher — <span class="font-semibold text-ink">no extra parameters</span> at deployment.</p>
+            <p class="text-sm leading-snug">The encoder is the <span class="font-semibold text-ink">same Wan-14B</span> already used by the DMD score teacher, so there are <span class="font-semibold text-ink">no extra parameters</span> at deployment.</p>
           </li>
           <li class="flex gap-3 items-start">
             <span class="shrink-0 mt-2 w-1.5 h-1.5 rounded-full bg-ink"></span>
@@ -266,7 +261,7 @@
         <div class="text-[10px] uppercase tracking-[0.3em] text-muted">Demo · Foresight Readout Probe</div>
         <h3 class="font-serif text-2xl font-bold mt-1">Decoding the future from a frozen hidden state</h3>
       </div>
-      <div class="ml-auto text-xs text-muted">An MLP readout reconstructs future RGB from layer-15 features — frozen at probe time.</div>
+      <div class="ml-auto text-xs text-muted">An MLP readout reconstructs future RGB from layer-15 features, frozen at probe time.</div>
     </div>
 
     <div class="grid md:grid-cols-4 gap-3 p-6">
@@ -314,8 +309,8 @@
       </div>
       <div class="ml-auto text-xs text-muted max-w-md">
         The one-shot readout from the frozen Video-Mirai hidden state closely matches the
-        empirical average of 4 stochastic causal rollouts from the same starting frame —
-        evidence that the hidden state encodes the marginal future distribution, not just
+        empirical average of 4 stochastic causal rollouts from the same starting frame,
+        suggesting that the hidden state encodes the marginal future distribution, not just
         one trajectory.
       </div>
     </div>
@@ -498,7 +493,7 @@
           <video id="window-vid" class="w-full h-full object-cover" autoplay muted loop playsinline preload="metadata"></video>
         </div>
         <div class="text-xs text-muted">
-          $\{0,1\}$ — current plus one-segment lookahead — gives the best Quality and Total.
+          $\{0,1\}$, meaning current plus one-segment lookahead, gives the best Quality and Total.
         </div>
       </div>
       <div class="md:col-span-2 flex flex-col gap-3">
