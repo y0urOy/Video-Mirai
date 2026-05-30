@@ -11,6 +11,8 @@ checkpoints/
 output/
 dataset/
 prompts/vidprom_filtered_extended.txt
+prompts/MovieGenVideoBench.txt
+prompts/MovieGenVideoBench_extended.txt
 evaluation_results/
 logs/
 /videos/                       # top-level training videos — large, not tracked

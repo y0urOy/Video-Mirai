@@ -72,9 +72,7 @@ warm start — update `generator_ckpt` in the YAML accordingly.
 
 ### 3. Training prompts (~140 MB)
 
-Inference prompts (`MovieGenVideoBench.txt`, `MovieGenVideoBench_extended.txt`,
-`demos.txt`) are already bundled under `prompts/`. The large training corpus
-referenced by `data_path` in the YAML is **not** bundled:
+The training corpus referenced by `data_path` in the YAML is **not** bundled:
 
 ```bash
 hf download gdhe17/Self-Forcing vidprom_filtered_extended.txt --local-dir prompts
