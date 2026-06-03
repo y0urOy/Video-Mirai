@@ -2,7 +2,7 @@
 
 <div align="center">
 
-[![arXiv](https://img.shields.io/badge/arXiv-TBD-b31b1b.svg)]()
+[![arXiv](https://img.shields.io/badge/arXiv-2606.03971-b31b1b.svg)](https://arxiv.org/abs/2606.03971)
 [![Project Page](https://img.shields.io/badge/Project-Website-green)](https://y0urOy.github.io/Video-Mirai/)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 
@@ -13,8 +13,7 @@
 </p>
 
 This is the official PyTorch implementation of the paper
-**"Video-Mirai: Autoregressive Video Diffusion Models Need Foresight"**
-([arXiv:2606.03971](https://arxiv.org/abs/2606.03971)).
+**"Video-Mirai: Autoregressive Video Diffusion Models Need Foresight"**.
 
 > Causal video generators are under-constrained at the segment level: many hidden
 > states can decode the same plausible current segment, but only some retain the
