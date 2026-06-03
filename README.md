@@ -174,10 +174,10 @@ If you find this work useful, please cite:
 
 ```bibtex
 @article{yu2026videomirai,
-  title   = {Video-Mirai: Autoregressive Video Diffusion Models Need Foresight},
-  author  = {Yu, Yonghao and Huang, Lang and Li, Runyi and Wang, Zerun and Yamasaki, Toshihiko},
-  journal = {arXiv preprint arXiv:2606.03971},
-  year    = {2026}
+  title={Video-Mirai: Autoregressive Video Diffusion Models Need Foresight},
+  author={Yu, Yonghao and Huang, Lang and Li, Runyi and Wang, Zerun and Yamasaki, Toshihiko},
+  journal={arXiv preprint arXiv:2606.03971},
+  year={2026}
 }
 ```
 
