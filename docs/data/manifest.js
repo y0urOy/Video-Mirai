@@ -57,7 +57,7 @@ window.WEBSITE_DATA = {
   ],
   gallery30s: [
     { slug: "m018", prompt: "An astronaut runs on the surface of the moon — low-angle shot, smooth and lightweight movement." },
-    { slug: "m002", prompt: "A snowboarder accelerating down a powdery slope, weaving between trees." },
+    { slug: "m002", prompt: "A bride and groom sharing a tender first dance." },
     { slug: "m007", prompt: "A woman in purple overalls and cowboy boots strolls in Mumbai during a winter storm." },
     { slug: "m029", prompt: "An adorable kangaroo in purple overalls and cowboy boots strolls through Mumbai during a colorful festival." },
     { slug: "m006", prompt: "In a tranquil forest clearing, a sparkling waterfall cascades into a clear pool surrounded by lush greenery and flowers." },
