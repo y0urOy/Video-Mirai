@@ -557,14 +557,8 @@
     <div class="flex flex-wrap items-baseline gap-x-4 gap-y-1 mb-6">
       <h3 class="font-serif text-2xl md:text-3xl font-bold">30-second rollouts</h3>
       <span class="text-sm text-muted">Beyond the training horizon.</span>
-      <span class="ml-auto text-[11px] text-muted hidden sm:inline">Click to toggle view</span>
-      <button data-pip-toggle="gallery-grid-30s"
-              class="pip-toggle inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-line text-xs font-mono uppercase tracking-wider hover:border-ink transition"
-              title="Click to switch between comparison view and Video-Mirai only">
-        <span class="pip-label-text"><span class="inline-block w-1.5 h-1.5 rounded-full bg-accent align-middle mr-1"></span>Video-Mirai&nbsp;&nbsp;<span class="inline-block w-1.5 h-1.5 rounded-full bg-muted align-middle mr-1"></span>Baseline</span>
-      </button>
     </div>
-    <div id="gallery-grid-30s" data-pip="on" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5"></div>
+    <div id="gallery-grid-30s" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5"></div>
     <p class="mt-5 text-xs text-muted leading-relaxed">
       Video-Mirai composes with <a href="https://rolling-sink.github.io/" target="_blank" rel="noopener" class="underline decoration-dotted hover:text-ink">Rolling-Sink</a>
       for minute-level long-video generation. The 30-second clips above are produced by stacking

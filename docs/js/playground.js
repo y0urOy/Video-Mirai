@@ -387,7 +387,8 @@
   // Gallery — hover to play, swap on click
   // ============================================================
   (function gallery() {
-    const renderGrid = (gridId, items) => {
+    const renderGrid = (gridId, items, opts = {}) => {
+      const { showPip = true } = opts;
       const grid = document.getElementById(gridId);
       if (!grid || !items) return;
       items.forEach((g) => {
@@ -397,43 +398,54 @@
         const src = (state) => `videos/gallery/${g.slug}-${state}.mp4`;
         const oursURL = src("ours");
         const baseURL = src("base");
-        card.innerHTML = `
-          <video class="main-video" autoplay muted loop playsinline preload="auto"></video>
-          <span class="main-label">VIDEO-MIRAI</span>
-          <button class="pip" type="button" aria-label="Swap baseline and Video-Mirai">
-            <video class="pip-video" autoplay muted loop playsinline preload="auto"></video>
-            <span class="pip-label">BASELINE</span>
-          </button>
-          <div class="prompt">${g.prompt}</div>
-        `;
-        const mainV = card.querySelector(".main-video");
-        const pipV  = card.querySelector(".pip-video");
-        const mainL = card.querySelector(".main-label");
-        const pipL  = card.querySelector(".pip-label");
+        if (showPip) {
+          card.innerHTML = `
+            <video class="main-video" autoplay muted loop playsinline preload="auto"></video>
+            <span class="main-label">VIDEO-MIRAI</span>
+            <button class="pip" type="button" aria-label="Swap baseline and Video-Mirai">
+              <video class="pip-video" autoplay muted loop playsinline preload="auto"></video>
+              <span class="pip-label">BASELINE</span>
+            </button>
+            <div class="prompt">${g.prompt}</div>
+          `;
+          const mainV = card.querySelector(".main-video");
+          const pipV  = card.querySelector(".pip-video");
+          const mainL = card.querySelector(".main-label");
+          const pipL  = card.querySelector(".pip-label");
 
-        mainV.src = oursURL;
-        pipV.src  = baseURL;
-        mainV.play().catch(()=>{});
-        pipV.play().catch(()=>{});
-
-        card.querySelector(".pip").addEventListener("click", (e) => {
-          e.stopPropagation();
-          const mainSrc = mainV.currentSrc || mainV.src;
-          const pipSrc  = pipV.currentSrc  || pipV.src;
-          mainV.src = pipSrc;
-          pipV.src  = mainSrc;
-          const t = mainL.textContent;
-          mainL.textContent = pipL.textContent;
-          pipL.textContent  = t;
-          card.dataset.state = card.dataset.state === "ours" ? "base" : "ours";
+          mainV.src = oursURL;
+          pipV.src  = baseURL;
           mainV.play().catch(()=>{});
           pipV.play().catch(()=>{});
-        });
+
+          card.querySelector(".pip").addEventListener("click", (e) => {
+            e.stopPropagation();
+            const mainSrc = mainV.currentSrc || mainV.src;
+            const pipSrc  = pipV.currentSrc  || pipV.src;
+            mainV.src = pipSrc;
+            pipV.src  = mainSrc;
+            const t = mainL.textContent;
+            mainL.textContent = pipL.textContent;
+            pipL.textContent  = t;
+            card.dataset.state = card.dataset.state === "ours" ? "base" : "ours";
+            mainV.play().catch(()=>{});
+            pipV.play().catch(()=>{});
+          });
+        } else {
+          // No baseline preview — only the Video-Mirai clip is loaded.
+          card.innerHTML = `
+            <video class="main-video" autoplay muted loop playsinline preload="auto"></video>
+            <div class="prompt">${g.prompt}</div>
+          `;
+          const mainV = card.querySelector(".main-video");
+          mainV.src = oursURL;
+          mainV.play().catch(()=>{});
+        }
         grid.appendChild(card);
       });
     };
     renderGrid("gallery-grid-5s",  D.gallery5s);
-    renderGrid("gallery-grid-30s", D.gallery30s);
+    renderGrid("gallery-grid-30s", D.gallery30s, { showPip: false });
 
     // Per-section toggle. Button label describes the CURRENT view state, with
     // a colored dot acting as the Baseline/Video-Mirai legend marker.
