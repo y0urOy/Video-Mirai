@@ -15,25 +15,19 @@ prompts/MovieGenVideoBench.txt
 prompts/MovieGenVideoBench_extended.txt
 evaluation_results/
 logs/
-/videos/                       # top-level training videos — large, not tracked
+/videos/
 wandb/
 long_video/
 
-# website/ assets ARE tracked (HTML/CSS/JS/manifest + bundled mp4s for the project page)
-
-# editor / OS noise
 .DS_Store
 .idea/
 .vscode/
 *.swp
 
-# tool dirs
 .codex/
 .claude/
 .agents/
 
-# private docs (kept locally, not published)
 docs/README.md
 
-# 30-second gallery baselines aren't displayed on the site (Video-Mirai only)
 docs/videos/gallery/m*-base.mp4
