@@ -60,7 +60,7 @@ window.WEBSITE_DATA = {
     { slug: "m002", prompt: "A bride and groom sharing a tender first dance." },
     { slug: "m007", prompt: "A woman in purple overalls and cowboy boots strolls in Mumbai during a winter storm." },
     { slug: "m029", prompt: "An adorable kangaroo in purple overalls and cowboy boots strolls through Mumbai during a colorful festival." },
-    { slug: "m006", prompt: "In a tranquil forest clearing, a sparkling waterfall cascades into a clear pool surrounded by lush greenery and flowers." },
-    { slug: "m028", prompt: "Animated close-up of a short fluffy monster kneeling beside a melting red candle, in a realistic 3D art style." }
+    { slug: "m006", prompt: "Animated close-up of a short fluffy monster kneeling beside a melting red candle, in a realistic 3D art style." },
+    { slug: "m028", prompt: "A video of a fish swimming through clear water, with its movements creating ripples and waves." }
   ]
 };
