@@ -7,6 +7,7 @@ tags:
 - diffusion
 - causal
 - wan
+- arxiv:2606.03971
 pipeline_tag: text-to-video
 ---
 
@@ -14,7 +15,7 @@ pipeline_tag: text-to-video
 
 **Video-Mirai: Autoregressive Video Diffusion Models Need Foresight**
 
-- 📄 Paper: https://arxiv.org/abs/2606.03971
+- 📄 Paper: https://huggingface.co/papers/2606.03971 ([arXiv](https://arxiv.org/abs/2606.03971))
 - 💻 Code: https://github.com/y0urOy/Video-Mirai
 - 🌐 Project page: https://y0urOy.github.io/Video-Mirai/
 
