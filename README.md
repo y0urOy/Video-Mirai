@@ -3,6 +3,7 @@
 <div align="center">
 
 [![arXiv](https://img.shields.io/badge/arXiv-2606.03971-b31b1b.svg)](https://arxiv.org/abs/2606.03971)
+[![HuggingFace Model](https://img.shields.io/badge/🤗%20HuggingFace-Video--Mirai-yellow)](https://huggingface.co/y0urOy/Video-Mirai)
 [![Project Page](https://img.shields.io/badge/Project-Website-green)](https://y0urOy.github.io/Video-Mirai/)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 
