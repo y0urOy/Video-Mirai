@@ -43,7 +43,7 @@ echo "[upload_to_hf] checkpoint  : $CKPT ($(du -h "$CKPT" | cut -f1))"
 echo "[upload_to_hf] model card  : $CARD"
 
 # Create the repo (no-op if it already exists).
-hf repo create "$REPO_ID" --type model --exist-ok
+hf repo create "$REPO_ID" --repo-type model --exist-ok
 
 # Upload the model card as README.md (rendered on the repo's main page).
 hf upload "$REPO_ID" "$CARD" README.md --repo-type model
