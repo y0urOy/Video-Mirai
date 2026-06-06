@@ -9,11 +9,7 @@
 
 </div>
 
-<p align="center">
-  <video src="assets/video-mirai-promo-16x9.mp4" width="900" controls autoplay muted loop playsinline>
-    Your browser does not support the video tag.
-  </video>
-</p>
+https://github.com/user-attachments/assets/4d54be50-5221-4c21-aaa5-3710ead3737d
 
 This is the official PyTorch implementation of the paper
 **"Video-Mirai: Autoregressive Video Diffusion Models Need Foresight"**.
