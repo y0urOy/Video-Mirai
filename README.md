@@ -20,8 +20,8 @@ This is the official PyTorch implementation of the paper
 > states can decode the same plausible current segment, but only some retain the
 > identity, layout, and motion cues that *future* segments will need. Video-Mirai
 > closes this representation-level planning gap by letting a frozen bidirectional
-> encoder supervise the causal hidden state with **future-aware feature targets** —
-> at training time only. At inference, the foresight encoder and predictor are
+> encoder supervise the causal hidden state with **future-aware feature targets**,
+> only at training time. At inference, the foresight encoder and predictor are
 > discarded; the deployed generator keeps its causal architecture, FLOPs, and
 > KV-cache behavior **unchanged**.
 
@@ -44,8 +44,8 @@ CUDA 12.x + PyTorch ≥ 2.4 + FSDP-compatible PyTorch is recommended.
 
 ## ⬇️ Download
 
-The training entry point expects three external resources. All commands below
-use the `hf` CLI (install with `pip install huggingface_hub[cli]`).
+Inference only needs §1 and §2 below. Training additionally requires §3 and §4.
+All commands below use the `hf` CLI (install with `pip install huggingface_hub[cli]`).
 
 ### 1. Wan2.1 model weights (T5 encoder + VAE + DiT)
 
@@ -60,8 +60,10 @@ hf download Wan-AI/Wan2.1-T2V-14B  --local-dir wan_models/Wan2.1-T2V-14B
 
 ### 2. Video-Mirai foresight checkpoint (for inference)
 
-Skip §3 and §4 below if you only want to run inference. The trained Video-Mirai
-checkpoint is hosted on the Hugging Face Hub:
+Skip §3 and §4 below if you only want to run inference (§1 above is still
+required, since `utils/wan_wrapper.py` loads the Wan2.1 backbones at inference
+time). With the Wan2.1 backbones in place, download the trained Video-Mirai
+checkpoint and run:
 
 ```bash
 hf download y0urOy/Video-Mirai model.pt --local-dir checkpoints
@@ -81,7 +83,7 @@ hf download zhuhz22/Causal-Forcing chunkwise/causal_ode.pt --local-dir checkpoin
 ```
 
 Any compatible Causal-Forcing / Self-Forcing checkpoint can be used as the
-warm start — update `generator_ckpt` in the YAML accordingly.
+warm start; update `generator_ckpt` in the YAML accordingly.
 
 ### 4. Training prompts (~140 MB)
 
@@ -98,7 +100,7 @@ This places the file at `prompts/vidprom_filtered_extended.txt`, matching the
 
 ## 🚀 Training
 
-Single canonical recipe — chunk-wise (3 frames per block), with the frozen
+Single canonical recipe: chunk-wise (3 frames per block), with the frozen
 Wan-14B bidirectional teacher and a 3-block DiT projector. Config:
 [`configs/video_mirai_dmd_chunkwise.yaml`](configs/video_mirai_dmd_chunkwise.yaml).
 
@@ -139,8 +141,8 @@ for full list of defaults):
 | `foresight_projector_type` | dit | 3-block DiT predictor (`projection_layers_num=3`, `ffn_ratio=4`) |
 
 The foresight teacher is always the frozen bidirectional Wan-14B that DMD already
-loads as `real_score` — no extra parameters at training time and no impact on
-inference cost.
+loads as `real_score`, so there are no extra parameters at training time and no
+impact on inference cost.
 
 `foresight_weight` and `foresight_delta` can be overridden on the command line,
 e.g. `--foresight_weight 0.1 --foresight_delta 2`.
@@ -150,7 +152,7 @@ e.g. `--foresight_weight 0.1 --foresight_delta 2`.
 ## ⚡ Inference (short video)
 
 ```bash
-CKPT=path/to/checkpoint_model_XXXXXX.pt \
+CKPT=checkpoints/model.pt \
 PROMPTS=prompts/demos.txt \
 OUT=samples/foresight_chunkwise \
 bash scripts/inference.sh
@@ -174,7 +176,7 @@ demo_utils/   # GPU memory helpers used by inference
 prompts/      # bundled prompt lists for training / inference
 inference.py  # short-video T2V inference entry point
 scripts/      # thin shell wrappers around train / inference
-docs/         # static project page (HTML/CSS/JS + bundled mp4 demos) — served by GitHub Pages
+docs/         # static project page (HTML/CSS/JS + bundled mp4 demos), served by GitHub Pages
 train.py      # training entry point
 ```
 
