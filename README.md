@@ -57,7 +57,19 @@ hf download Wan-AI/Wan2.1-T2V-1.3B --local-dir wan_models/Wan2.1-T2V-1.3B
 hf download Wan-AI/Wan2.1-T2V-14B  --local-dir wan_models/Wan2.1-T2V-14B
 ```
 
-### 2. Causal-Forcing warm-start checkpoint
+### 2. Video-Mirai foresight checkpoint (for inference)
+
+Skip §2 below if you only want to run inference. The trained Video-Mirai
+checkpoint is hosted on the Hugging Face Hub:
+
+```bash
+hf download y0urOy/Video-Mirai model.pt --local-dir checkpoints
+CKPT=checkpoints/model.pt bash scripts/inference.sh
+```
+
+Model card: https://huggingface.co/y0urOy/Video-Mirai
+
+### 2b. Causal-Forcing warm-start checkpoint (for training)
 
 The foresight stage distills from a pre-trained causal generator. The YAML
 points at `checkpoints/chunkwise/causal_ode.pt`, which is released by the
